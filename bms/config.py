@@ -2,7 +2,7 @@
 
 
 class Thresholds:
-    """All values are SI: volts, amps, degrees C, ms."""
+    """All values are SI: volts, amps, degrees C."""
 
     def __init__(
         self,

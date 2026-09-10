@@ -1,1 +1,1 @@
-"""Formula SAE BMS state-machine simulation (SN5)."""
+"""this folder is a package"""

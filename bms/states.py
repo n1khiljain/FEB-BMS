@@ -20,7 +20,7 @@ ALL_STATES = (
 )
 
 # States where the accumulator is connected to the tractive system
-HV_CONNECTED_STATES = set({State.PRECHARGE, State.DRIVE, State.CHARGING})
+HV_CONNECTED_STATES = frozenset({State.PRECHARGE, State.DRIVE, State.CHARGING})
 
 class FaultReason:
     """Why the machine entered FAULT."""
@@ -31,29 +31,33 @@ class FaultReason:
 
     # EV.7.5.2 (limit depends on state: charge vs discharge)
     CELL_OVERTEMP = "CELL_OVERTEMP"
-    CELL_UNDERTEMP_CHARGE = "CELL_UNDERTEMP_CHARGE"
+    CELL_UNDERTEMP = "CELL_UNDERTEMP"
 
     # Datasheet limits
     OVERCURRENT_DISCHARGE = "OVERCURRENT_DISCHARGE"
     OVERCURRENT_CHARGE = "OVERCURRENT_CHARGE"
 
-    # Sensor loss
-    SENSOR_MISSING = "SENSOR_MISSING"  # a reading came back as None
-    SENSOR_STALE = "SENSOR_STALE"      # readings stopped updating
+    # Sensor loss. EV.7.3.4d covers missing or interrupted measurements.
+    SENSOR_MISSING = "SENSOR_MISSING"            # a None, or an empty list
+    SENSOR_IMPLAUSIBLE = "SENSOR_IMPLAUSIBLE"    # reported, but outside the valid range
+    SENSOR_STALE = "SENSOR_STALE"                # snapshot older than stale_ms
 
     # EV.5.6
-    PRECHARGE_TIMEOUT = "PRECHARGE_TIMEOUT"
+    PRECHARGE_TIMEOUT = "PRECHARGE_TIMEOUT"      # ratio not reached in time
+    DISCHARGE_TIMEOUT = "DISCHARGE_TIMEOUT"      # TS did not fall below 60 V in time
 
 ###############################
 
 ALL_FAULT_REASONS = (
-    FaultReason.CELL_UNDERVOLTAGE,
     FaultReason.CELL_OVERVOLTAGE,
+    FaultReason.CELL_UNDERVOLTAGE,
     FaultReason.CELL_OVERTEMP,
-    FaultReason.CELL_UNDERTEMP_CHARGE,
+    FaultReason.CELL_UNDERTEMP,
     FaultReason.OVERCURRENT_DISCHARGE,
     FaultReason.OVERCURRENT_CHARGE,
     FaultReason.SENSOR_MISSING,
+    FaultReason.SENSOR_IMPLAUSIBLE,
     FaultReason.SENSOR_STALE,
     FaultReason.PRECHARGE_TIMEOUT,
+    FaultReason.DISCHARGE_TIMEOUT,
 )

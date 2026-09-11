@@ -1,7 +1,4 @@
 """One snapshot of every sensor input the state machine reads, at a single moment.
-
-Data and simple helpers only. Readings knows nothing about thresholds or
-states; it reports what the pack measured and lets the caller judge it.
 """
 
 import copy

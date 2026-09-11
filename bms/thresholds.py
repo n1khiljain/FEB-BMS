@@ -1,6 +1,3 @@
-"""Thresholds the state machine judges sensor inputs against."""
-
-
 class Thresholds:
     """All values are SI: volts, amps, degrees C."""
 
@@ -31,7 +28,20 @@ class Thresholds:
         cell_v_valid_max=5.0,
 
         temp_valid_min=-40,
-        temp_valid_max=120
+        temp_valid_max=120,
+
+        # How long a problem must last before it counts. TODO(nikhil): tune.
+        voltage_fault_ms=100,
+        temp_fault_ms=1000,   # cells heat slowly, so a spike is noise
+        current_fault_ms=100,
+        sensor_fault_ms=200,
+
+        # A snapshot older than this is stale. The pack scans every 50-100 ms.
+        stale_ms=250,
+
+        # How long each timed state may take. TODO(nikhil): tune.
+        precharge_timeout_ms=5000,
+        discharge_timeout_ms=5000,   # EV.7.2.2c allows five seconds
     ):
         self.cell_v_min = cell_v_min
         self.cell_v_max = cell_v_max
@@ -48,6 +58,13 @@ class Thresholds:
         self.cell_v_valid_max = cell_v_valid_max
         self.temp_valid_min = temp_valid_min
         self.temp_valid_max = temp_valid_max
+        self.voltage_fault_ms = voltage_fault_ms
+        self.temp_fault_ms = temp_fault_ms
+        self.current_fault_ms = current_fault_ms
+        self.sensor_fault_ms = sensor_fault_ms
+        self.stale_ms = stale_ms
+        self.precharge_timeout_ms = precharge_timeout_ms
+        self.discharge_timeout_ms = discharge_timeout_ms
 
         self.validate()
 

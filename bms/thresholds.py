@@ -14,6 +14,9 @@ class Thresholds:
         temp_min_charge=0,      
         temp_max_charge=45,        
 
+        # Derating starts here and reaches zero current at temp_max_discharge.
+        derate_start_temp=55,
+
         # Current, from datasheet, assuming no cooling
         current_max_discharge=60,
         current_max_charge=15,
@@ -50,6 +53,7 @@ class Thresholds:
         self.temp_min_discharge = temp_min_discharge
         self.temp_min_charge = temp_min_charge
         self.temp_max_charge = temp_max_charge
+        self.derate_start_temp = derate_start_temp
         self.current_max_discharge = current_max_discharge
         self.current_max_charge = current_max_charge
         self.precharge_target_ratio = precharge_target_ratio
@@ -119,6 +123,14 @@ class Thresholds:
             raise ValueError(
                 f"temp_valid_max {self.temp_valid_max} must be above the "
                 f"hottest operating limit {hottest}"
+            )
+
+        # Derating needs room between where it starts and where it faults.
+        if not self.temp_min_discharge < self.derate_start_temp < self.temp_max_discharge:
+            raise ValueError(
+                f"need temp_min_discharge < derate_start_temp < "
+                f"temp_max_discharge, got {self.temp_min_discharge} / "
+                f"{self.derate_start_temp} / {self.temp_max_discharge}"
             )
 
         # EV.5.6.1a sets a floor of 0.90; the tractive system cannot precharge

@@ -95,7 +95,8 @@ def _extreme(values, pick):
     reported = [(v, i) for i, v in enumerate(values) if v is not None]
     if not reported:
         return (None, None)
-    return pick(reported)
+    # Key on the value alone, so a tie reports the first cell, not the last.
+    return pick(reported, key=lambda pair: pair[0])
 
 
 def _show(value):

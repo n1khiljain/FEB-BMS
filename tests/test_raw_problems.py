@@ -2,26 +2,18 @@
 
 import unittest
 
-from bms.readings import Readings
 from bms.state_machine import BmsStateMachine
 from bms.states import FaultReason, State
+from tests.helpers import make_readings
 
 
 def healthy(**changes):
-    """A resting 4-cell pack with nothing wrong."""
-    r = Readings(
-        timestamp_ms=0,
-        cell_voltages=[3.60, 3.61, 3.59, 3.60],
-        cell_temps=[25.0, 25.5, 24.8, 25.1],
-        pack_current=0.0,
-        accumulator_voltage=14.4,
-        ts_voltage=0.0,
-        ts_activate_requested=False,
-        shutdown_circuit_closed=True,
-        charger_connected=False,
-        fault_reset_pressed=False,
-    )
-    return r.replaced(**changes) if changes else r
+    """A resting pack with four cells and four temperature sensors."""
+    fields = dict(cell_voltages=[3.60, 3.61, 3.59, 3.60],
+                  cell_temps=[25.0, 25.5, 24.8, 25.1],
+                  accumulator_voltage=14.4)
+    fields.update(changes)
+    return make_readings(**fields)
 
 
 class TestRawProblems(unittest.TestCase):

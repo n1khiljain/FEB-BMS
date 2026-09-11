@@ -157,6 +157,25 @@ class BmsStateMachine:
             return {"air_neg": True, "precharge": False, "air_pos": True}
         return {"air_neg": False, "precharge": False, "air_pos": False}
 
+    def discharge_current_limit(self, r):
+        """How much discharge current the pack allows right now.
+
+        Full current up to derate_start_temp, then a straight line down to
+        zero at temp_max_discharge, so power fades instead of cutting out.
+        """
+        full = self.th.current_max_discharge
+        t_hi, _ = r.max_cell_temp()
+        if t_hi is None:
+            return 0.0   # no temperature reported, so allow nothing
+
+        start = self.th.derate_start_temp
+        limit = self.th.temp_max_discharge
+        if t_hi <= start:
+            return full
+        if t_hi >= limit:
+            return 0.0
+        return full * (limit - t_hi) / (limit - start)
+
     def bms_ok(self):
         """The BMS contact in the shutdown circuit. False opens the loop."""
         return self.state != State.FAULT

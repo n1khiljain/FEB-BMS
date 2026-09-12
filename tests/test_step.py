@@ -13,13 +13,11 @@ class TestStep(unittest.TestCase):
         self.th = self.m.th
 
     def run_for(self, r, start_ms, end_ms, every=50):
-        """Feed the same snapshot repeatedly, keeping its timestamp fresh."""
         t = start_ms
         while t <= end_ms:
             self.m.step(r.replaced(timestamp_ms=t), t)
             t += every
 
-    # --- first call ---
     def test_first_step_stamps_entry_time(self):
         self.assertIsNone(self.m.state_entered_ms)
         self.m.step(healthy(), 500)
@@ -34,24 +32,23 @@ class TestStep(unittest.TestCase):
     def test_step_returns_the_state(self):
         self.assertEqual(self.m.step(healthy(), 0), self.m.state)
 
-    # --- rising edges ---
     def test_edges_update_even_when_step_returns_early(self):
-        # Fault first, then hold the reset button down across two calls.
+
         self.run_for(healthy(pack_current=75.0), 0, self.th.current_fault_ms)
         self.assertEqual(self.m.state, State.FAULT)
 
         held = healthy(fault_reset_pressed=True, timestamp_ms=1000,
                        pack_current=75.0)
-        self.m.step(held, 1000)   # rising edge, but the problem is still there
+        self.m.step(held, 1000)
         self.assertEqual(self.m.state, State.FAULT)
         self.assertTrue(self.m._prev_reset)
 
     def test_held_button_is_not_a_repeated_edge(self):
         self.run_for(healthy(pack_current=75.0), 0, self.th.current_fault_ms)
         held = healthy(fault_reset_pressed=True, pack_current=75.0)
-        self.m.step(held.replaced(timestamp_ms=1000), 1000)  # bad data present
+        self.m.step(held.replaced(timestamp_ms=1000), 1000)
         self.m.step(healthy(fault_reset_pressed=True, timestamp_ms=1100), 1100)
-        self.assertEqual(self.m.state, State.FAULT)  # no fresh edge
+        self.assertEqual(self.m.state, State.FAULT)
 
     def test_ts_button_edge_is_tracked(self):
         self.m.step(healthy(ts_activate_requested=True), 0)
@@ -59,7 +56,6 @@ class TestStep(unittest.TestCase):
         self.m.step(healthy(ts_activate_requested=False), 50)
         self.assertFalse(self.m._prev_ts_activate)
 
-    # --- staleness ---
     def test_stale_snapshot_faults_immediately(self):
         old = healthy(timestamp_ms=0)
         self.m.step(old, self.th.stale_ms + 1)
@@ -71,11 +67,10 @@ class TestStep(unittest.TestCase):
         self.assertEqual(self.m.fault.value, 1000)
 
     def test_stale_beats_a_debounced_problem(self):
-        # Over current would need its hold time; staleness does not wait.
+
         self.m.step(healthy(timestamp_ms=0, pack_current=75.0), 1000)
         self.assertEqual(self.m.fault.reason, FaultReason.SENSOR_STALE)
 
-    # --- confirmed problems ---
     def test_brief_problem_does_not_fault(self):
         self.m.step(healthy(pack_current=75.0), 0)
         self.m.step(healthy(timestamp_ms=50, pack_current=0.0), 50)
@@ -100,7 +95,6 @@ class TestStep(unittest.TestCase):
         self.assertEqual(to_state, State.FAULT)
         self.assertEqual(note, FaultReason.OVERCURRENT_DISCHARGE)
 
-    # --- fault is latched ---
     def test_fault_persists_after_the_problem_clears(self):
         self.run_for(healthy(pack_current=75.0), 0, self.th.current_fault_ms)
         self.run_for(healthy(), 1000, 3000)
@@ -134,7 +128,7 @@ class TestStep(unittest.TestCase):
 
     def test_reset_needs_a_fresh_press(self):
         self.run_for(healthy(pack_current=75.0), 0, self.th.current_fault_ms)
-        # Button already down when the fault cleared, so no rising edge.
+
         self.m.step(healthy(timestamp_ms=900, pack_current=75.0,
                             fault_reset_pressed=True), 900)
         self.m.step(healthy(timestamp_ms=1000, fault_reset_pressed=True), 1000)
@@ -149,7 +143,6 @@ class TestStep(unittest.TestCase):
         self.assertEqual(self.m.history[-1],
                          (1000, State.FAULT, State.INIT, "fault reset"))
 
-    # --- handlers ---
     def test_handler_runs_for_a_healthy_pack(self):
         seen = []
         self.m._handlers[State.INIT] = lambda *args: seen.append(args)
@@ -171,7 +164,7 @@ class TestStep(unittest.TestCase):
         seen = []
         self.m._handlers[State.INIT] = lambda *args: seen.append(args)
         self.run_for(healthy(pack_current=75.0), 0, self.th.current_fault_ms)
-        # Ran while healthy-ish, but not on the step that faulted.
+
         self.assertEqual(self.m.state, State.FAULT)
         self.assertLess(len(seen), 3)
 

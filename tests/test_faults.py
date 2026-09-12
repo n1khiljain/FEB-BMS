@@ -16,7 +16,6 @@ class FaultCase(unittest.TestCase):
         self.th = self.m.th
 
     def hold(self, duration_ms, start_ms=0, **overrides):
-        """Feed one bad snapshot for a while. Returns the end time."""
         return run_for(self.m, make_readings(**overrides),
                        start_ms, duration_ms, tick_ms=50)
 
@@ -65,7 +64,7 @@ class TestEachReason(FaultCase):
         self.assertEqual(self.m.fault.value, 75.0)
 
     def test_overcurrent_charge_from_regen(self):
-        # Heavy regen braking pushes current back into the pack while driving.
+
         t = go_to_drive(self.m)
         self.hold(self.th.current_fault_ms, t, pack_current=-40.0,
                   ts_activate_requested=True, ts_voltage=14.8)
@@ -83,14 +82,14 @@ class TestEachReason(FaultCase):
         self.assertIsNone(self.m.fault.cell_index)
 
     def test_sensor_implausible_not_overtemp(self):
-        # 200 C is not a hot cell, it is a broken sensor.
+
         self.hold(self.th.sensor_fault_ms, 0, cell_temps=[25.0, 200.0])
         self.assertEqual(self.m.fault.reason, FaultReason.SENSOR_IMPLAUSIBLE)
         self.assertEqual(self.m.fault.cell_index, 1)
         self.assertEqual(self.m.fault.value, 200.0)
 
     def test_sensor_stale(self):
-        # The snapshot never updates while the clock keeps moving.
+
         old = make_readings(t=0)
         for now in range(0, 1000, 100):
             self.m.step(old, now)
@@ -135,7 +134,7 @@ class TestDebounce(FaultCase):
         self.assertIsNone(self.m.fault)
 
     def test_timer_restarts_after_the_problem_clears(self):
-        # Two 400 ms stretches of over temperature, with good data between.
+
         t = go_to_drive(self.m)
         driving = dict(ts_activate_requested=True, ts_voltage=14.8,
                        accumulator_voltage=14.8)

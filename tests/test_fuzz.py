@@ -1,7 +1,4 @@
-"""Fuzz test: 10,000 random snapshots, checking what must always hold.
-
-The seed is fixed, so a failure here is reproducible rather than a one-off.
-"""
+"""Fuzz test: 10,000 random snapshots, checking what must always hold."""
 
 import random
 import unittest
@@ -16,17 +13,11 @@ TICK_MS = 50
 
 
 def random_readings(rng, t):
-    """Mostly plausible data, with occasional excursions and dead sensors.
-
-    All-wild data faults the machine on the first tick and latches there,
-    which exercises nothing. Keeping most snapshots healthy lets the machine
-    wander through the whole diagram.
-    """
     def cell():
         if rng.random() < 0.02:
             return None
         if rng.random() < 0.05:
-            return round(rng.uniform(1.5, 4.6), 2)   # out of range
+            return round(rng.uniform(1.5, 4.6), 2)
         return round(rng.uniform(3.2, 4.0), 2)
 
     def temp():
@@ -84,7 +75,6 @@ class TestFuzz(unittest.TestCase):
             if relays["air_pos"]:
                 self.assertTrue(relays["air_neg"], f"snapshot {i}")
 
-        # The run should be varied enough to be worth something.
         self.assertIn(State.FAULT, seen)
         self.assertGreaterEqual(len(seen), 3)
 

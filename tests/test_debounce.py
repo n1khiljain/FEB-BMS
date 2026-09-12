@@ -31,8 +31,8 @@ class TestHeld(unittest.TestCase):
 
     def test_clearing_resets_the_timer(self):
         self.m._held("k", True, 0, 100)
-        self.m._held("k", False, 50, 100)          # problem went away
-        self.assertFalse(self.m._held("k", True, 120, 100))  # starts over
+        self.m._held("k", False, 50, 100)
+        self.assertFalse(self.m._held("k", True, 120, 100))
         self.assertTrue(self.m._held("k", True, 220, 100))
 
     def test_timers_are_independent(self):
@@ -71,8 +71,7 @@ class TestConfirmedProblem(unittest.TestCase):
         self.assertEqual(confirmed, (OV, 1, 4.25))
 
     def test_timer_survives_the_problem_moving_between_cells(self):
-        # Cell 1 is over voltage, then cell 3 takes over. The pack was over
-        # voltage the whole time, so the timer keeps running.
+
         first = self.problems(healthy(cell_voltages=[3.6, 4.25, 3.6, 3.6]))
         second = self.problems(healthy(cell_voltages=[3.6, 3.6, 3.6, 4.30]))
         self.assertIsNone(self.m._confirmed_problem(first, 0))
@@ -95,7 +94,7 @@ class TestConfirmedProblem(unittest.TestCase):
         self.assertEqual(self.m._since, {})
 
     def test_each_reason_uses_its_own_hold_time(self):
-        # Temperature is held far longer than current by default.
+
         th = self.m.th
         self.assertGreater(th.temp_fault_ms, th.current_fault_ms)
         hot = self.problems(healthy(cell_temps=[25.0, 61.0, 25.0, 25.0]))
@@ -135,7 +134,7 @@ class TestStaleness(unittest.TestCase):
         self.assertTrue(self.m.is_stale(healthy(timestamp_ms=0), limit + 1))
 
     def test_staleness_is_not_debounced(self):
-        # One late snapshot is enough; no timer is involved.
+
         self.m.is_stale(healthy(timestamp_ms=0), self.m.th.stale_ms + 1)
         self.assertEqual(self.m._since, {})
 

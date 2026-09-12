@@ -8,7 +8,6 @@ from tests.helpers import make_readings
 
 
 def healthy(**changes):
-    """A resting pack with four cells and four temperature sensors."""
     fields = dict(cell_voltages=[3.60, 3.61, 3.59, 3.60],
                   cell_temps=[25.0, 25.5, 24.8, 25.1],
                   accumulator_voltage=14.4)
@@ -23,7 +22,6 @@ class TestRawProblems(unittest.TestCase):
     def reasons(self, r):
         return [p[0] for p in self.m._raw_problems(r)]
 
-    # --- nothing wrong ---
     def test_healthy_pack_has_no_problems(self):
         self.assertEqual(self.m._raw_problems(healthy()), [])
 
@@ -35,7 +33,6 @@ class TestRawProblems(unittest.TestCase):
         self.assertEqual(self.m._raw_problems(healthy(
             cell_voltages=[3.6] * 8, cell_temps=[25.0, 25.0])), [])
 
-    # --- sensor problems come first ---
     def test_empty_voltage_list_is_missing(self):
         self.assertEqual(self.reasons(healthy(cell_voltages=[])),
                          [FaultReason.SENSOR_MISSING])
@@ -70,7 +67,7 @@ class TestRawProblems(unittest.TestCase):
         self.assertEqual(problems, [(FaultReason.SENSOR_IMPLAUSIBLE, 1, 500.0)])
 
     def test_sensor_problem_hides_the_rest(self):
-        # A pack that is also over current, but the data cannot be trusted.
+
         r = healthy(cell_voltages=[3.6, None, 3.6, 3.6], pack_current=500.0)
         self.assertEqual(self.reasons(r), [FaultReason.SENSOR_MISSING])
 
@@ -80,7 +77,6 @@ class TestRawProblems(unittest.TestCase):
                          [FaultReason.SENSOR_MISSING,
                           FaultReason.SENSOR_IMPLAUSIBLE])
 
-    # --- voltage ---
     def test_undervoltage(self):
         r = healthy(cell_voltages=[3.6, 2.40, 3.6, 3.6])
         self.assertEqual(self.m._raw_problems(r),
@@ -101,7 +97,6 @@ class TestRawProblems(unittest.TestCase):
         r = healthy(cell_voltages=[2.50, 4.20, 3.6, 3.6])
         self.assertEqual(self.m._raw_problems(r), [])
 
-    # --- temperature depends on the state ---
     def test_overtemp_while_driving(self):
         self.m.state = State.DRIVE
         r = healthy(cell_temps=[25.0, 61.0, 25.0, 25.0])
@@ -128,7 +123,6 @@ class TestRawProblems(unittest.TestCase):
         self.assertEqual(self.m._raw_problems(r),
                          [(FaultReason.CELL_UNDERTEMP, 2, -25.0)])
 
-    # --- current ---
     def test_overcurrent_discharge(self):
         r = healthy(pack_current=75.0)
         self.assertEqual(self.m._raw_problems(r),
@@ -147,7 +141,6 @@ class TestRawProblems(unittest.TestCase):
         self.assertEqual(self.m._raw_problems(healthy(pack_current=60.0)), [])
         self.assertEqual(self.m._raw_problems(healthy(pack_current=-15.0)), [])
 
-    # --- shape of the result ---
     def test_problems_are_three_tuples(self):
         for problem in self.m._raw_problems(healthy(pack_current=75.0)):
             self.assertEqual(len(problem), 3)

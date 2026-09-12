@@ -15,7 +15,6 @@ class TransitionCase(unittest.TestCase):
         self.t = 0
 
     def feed(self, **overrides):
-        """One step at the next tick. Returns the resulting state."""
         state = self.m.step(make_readings(t=self.t, **overrides), self.t)
         self.t += TICK_MS
         return state
@@ -48,7 +47,7 @@ class TestFromIdle(TransitionCase):
                       shutdown_circuit_closed=False), State.IDLE)
 
     def test_button_already_held_on_entry_does_not_count(self):
-        # Rising edge: the machine must see it low before it sees it high.
+
         m = BmsStateMachine()
         m.step(make_readings(t=0, ts_activate_requested=True), 0)
         self.assertEqual(m.state, State.IDLE)

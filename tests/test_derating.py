@@ -14,7 +14,6 @@ class TestDischargeCurrentLimit(unittest.TestCase):
         self.full = self.th.current_max_discharge
 
     def limit_at(self, temp, other=20.0):
-        """The limit when the hottest cell is at this temperature."""
         return self.m.discharge_current_limit(
             make_readings(cell_temps=[other, temp]))
 

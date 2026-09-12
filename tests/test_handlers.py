@@ -8,7 +8,6 @@ from tests.test_raw_problems import healthy
 
 
 class HandlerCase(unittest.TestCase):
-    """Puts the machine in one state, then feeds it single snapshots."""
 
     state = State.INIT
 
@@ -50,7 +49,6 @@ class TestIdle(HandlerCase):
     state = State.IDLE
 
     def press(self, **changes):
-        """A fresh press of the TS button, since edges need a low first."""
         self.feed(healthy(ts_activate_requested=False, **changes), 0)
         return self.feed(healthy(ts_activate_requested=True, **changes), 50)
 
@@ -58,7 +56,7 @@ class TestIdle(HandlerCase):
         self.assertEqual(self.press(), State.PRECHARGE)
 
     def test_held_button_does_not_start_precharge(self):
-        self.feed(healthy(ts_activate_requested=True), 0)   # already down
+        self.feed(healthy(ts_activate_requested=True), 0)
         self.m.state = State.IDLE
         self.assertEqual(
             self.feed(healthy(ts_activate_requested=True), 50), State.IDLE)
@@ -76,7 +74,7 @@ class TestIdle(HandlerCase):
             self.press(charger_connected=True), State.PRECHARGE)
 
     def test_cold_pack_may_still_drive(self):
-        # -5 C is legal to discharge, only charging is blocked.
+
         cold = [-5.0, 25.0, 25.0, 25.0]
         self.assertEqual(self.press(cell_temps=cold), State.PRECHARGE)
 
@@ -218,7 +216,6 @@ class TestDischarge(HandlerCase):
 
 
 class TestFullLap(unittest.TestCase):
-    """Idle, precharge, drive, shut down, back to idle."""
 
     def test_a_whole_activation_and_shutdown(self):
         m = BmsStateMachine()
@@ -229,17 +226,17 @@ class TestFullLap(unittest.TestCase):
             m.step(healthy(timestamp_ms=t, **changes), t)
             t += 50
 
-        feed()                                  # INIT -> IDLE
-        feed()                                  # button still low
-        feed(ts_activate_requested=True)        # IDLE -> PRECHARGE
+        feed()
+        feed()
+        feed(ts_activate_requested=True)
         feed(ts_activate_requested=True, accumulator_voltage=300.0,
-             ts_voltage=100.0)                  # climbing
+             ts_voltage=100.0)
         feed(ts_activate_requested=True, accumulator_voltage=300.0,
-             ts_voltage=280.0)                  # PRECHARGE -> DRIVE
+             ts_voltage=280.0)
         feed(ts_activate_requested=True, accumulator_voltage=300.0,
              ts_voltage=300.0, pack_current=40.0)
-        feed(ts_activate_requested=False, ts_voltage=300.0)  # -> DISCHARGE
-        feed(ts_voltage=10.0)                   # DISCHARGE -> IDLE
+        feed(ts_activate_requested=False, ts_voltage=300.0)
+        feed(ts_voltage=10.0)
 
         self.assertEqual(m.state, State.IDLE)
         self.assertIsNone(m.fault)

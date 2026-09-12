@@ -1,5 +1,4 @@
-"""One snapshot of every sensor input the state machine reads, at a single moment.
-"""
+"""One snapshot of every sensor input the state machine reads, at a single moment."""
 
 import copy
 
@@ -7,16 +6,16 @@ import copy
 class Readings:
     def __init__(
         self,
-        timestamp_ms, # when it was measured
-        cell_voltages, # List. One per module in series. None means the sensor didn't report.
-        cell_temps, # List. One per temperature sensor (may be fewer than modules)
-        pack_current, # Positive = discharging, negative = charging.
-        accumulator_voltage, # Battery side of Isolation Relays
-        ts_voltage, # inverter side of IR
-        ts_activate_requested, # driver's TS button
-        shutdown_circuit_closed, # is safety loop intact?
+        timestamp_ms,
+        cell_voltages,
+        cell_temps,
+        pack_current,
+        accumulator_voltage,
+        ts_voltage,
+        ts_activate_requested,
+        shutdown_circuit_closed,
         charger_connected,
-        fault_reset_pressed # Manual reset, from outside the car
+        fault_reset_pressed
     ):
         self.timestamp_ms = timestamp_ms
         self.cell_voltages = list(cell_voltages)
@@ -35,10 +34,6 @@ class Readings:
             return True
         return None in self.cell_voltages or None in self.cell_temps
 
-    # The four extremes below return (value, index), never a bare number. The
-    # index is the position in the original list, so a fault message can name
-    # which module tripped. Nothing reported gives (None, None), which a caller
-    # must test for before comparing; it is an absence, not a zero.
     def min_cell_voltage(self):
         return _extreme(self.cell_voltages, min)
 
@@ -52,18 +47,11 @@ class Readings:
         return _extreme(self.cell_temps, max)
 
     def precharge_ratio(self):
-        """ts_voltage / accumulator_voltage. Compare against precharge_target_ratio."""
         if self.accumulator_voltage <= 0:
             return 0.0
         return self.ts_voltage / self.accumulator_voltage
 
     def replaced(self, **changes):
-        """A copy of this snapshot with some fields changed.
-
-        Lets a test start from one healthy scan and vary a single field. The
-        two lists are copied as well, so editing one snapshot's cells never
-        reaches the other.
-        """
         other = copy.copy(self)
         other.cell_voltages = list(self.cell_voltages)
         other.cell_temps = list(self.cell_temps)
@@ -91,11 +79,10 @@ class Readings:
 
 
 def _extreme(values, pick):
-    """(value, index) of the min or max, skipping Nones. (None, None) if empty."""
     reported = [(v, i) for i, v in enumerate(values) if v is not None]
     if not reported:
         return (None, None)
-    # Key on the value alone, so a tie reports the first cell, not the last.
+
     return pick(reported, key=lambda pair: pair[0])
 
 

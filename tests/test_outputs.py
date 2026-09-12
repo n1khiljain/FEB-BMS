@@ -44,7 +44,7 @@ class TestRelayOutputs(unittest.TestCase):
                           "air_pos": True})
 
     def test_precharge_relay_never_closes_with_the_positive_air(self):
-        # EV.5.6.2: the resistor path is bypassed once the second AIR closes.
+
         for state in ALL_STATES:
             out = self.relays(state)
             self.assertFalse(out["precharge"] and out["air_pos"], state)
@@ -94,7 +94,6 @@ class TestTimeInState(unittest.TestCase):
 
 
 class TestEnterHelpers(unittest.TestCase):
-    """Every transition goes through one door."""
 
     def setUp(self):
         self.m = BmsStateMachine()

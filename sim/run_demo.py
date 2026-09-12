@@ -1,9 +1,4 @@
-"""A realistic session, printed as it happens. Run with python -m sim.run_demo.
-
-Power on, activate the tractive system, precharge, drive with rising current,
-shrug off a noise spike, shut down, then cook a cell until the pack faults and
-an operator resets it.
-"""
+"""A realistic session, printed as it happens. Run with python -m sim.run_demo."""
 
 import math
 
@@ -12,19 +7,18 @@ from bms.state_machine import BmsStateMachine
 from bms.states import State
 
 TICK_MS = 50
-MODULES = 80           # 1s4p modules in series
+MODULES = 80
 CELL_V = 3.70
 PACK_V = MODULES * CELL_V
 
-RC_PRECHARGE = 0.66    # 1.1 kOhm x 600 uF, in seconds
-RC_BLEED = 0.50        # discharge resistor, in seconds
+RC_PRECHARGE = 0.66
+RC_BLEED = 0.50
 
-# Timeline, in milliseconds.
-T_PRESS = 500          # driver presses the TS button
-T_SPIKE = 3500         # one garbage temperature sample
-T_RELEASE = 6000       # driver releases the button
-T_HEAT = 9000          # a module starts overheating
-T_RESET = 14000        # operator presses reset at the car
+T_PRESS = 500
+T_SPIKE = 3500
+T_RELEASE = 6000
+T_HEAT = 9000
+T_RESET = 14000
 T_END = 16000
 
 
@@ -49,7 +43,7 @@ class Car:
         temps = [25.0] * MODULES
         temps[34] = self.hot_cell_temp
         if now_ms == T_SPIKE:
-            temps[12] = 200.0   # one bad sample from a noisy sensor
+            temps[12] = 200.0
 
         return Readings(
             timestamp_ms=now_ms,
